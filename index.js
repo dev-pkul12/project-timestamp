@@ -20,44 +20,39 @@ app.get("/", function (req, res) {
 
 
 // your first API endpoint... 
-app.get("/api/hello", function (req, res) {
-  res.json({greeting: 'hello API'});
-});
+app.get("/api/:date?", function (req, res) {
+  let date = req.params.date;
 
+  let unixDate;
+  let dateObj;
+  let utcDate;
 
-// ========== TIMESTAMP MICROSERVICE ==========
+  // Test whether the input date is a number
+  let isUnix = /^\d+$/.test(date);
 
-// Current date/time if no param
-app.get("/api", (req, res) => {
-  const now = new Date();
-  res.json({
-    unix: now.getTime(),
-    utc: now.toUTCString()
-  });
-});
-
-// Date parsing endpoint
-app.get("/api/:date", (req, res) => {
-  const { date } = req.params;
-  let d;
-
-  if (/^\d+$/.test(date)) {
-    // If all digits → treat as unix timestamp
-    const n = Number(date);
-    const ms = date.length === 10 ? n * 1000 : n; // handle seconds vs ms
-    d = new Date(ms);
-  } else {
-    d = new Date(date);
+  // If no date specified, use the current date
+  if (!date) {
+    dateObj = new Date();
+  }
+  // If the date is a Unix Timestamp
+  else if (date && isUnix) {
+    unixDate = parseInt(date);
+    dateObj = new Date(unixDate);
+  }
+  // If the date is not a unix time stamp
+  else if (date && !isUnix) {
+    dateObj = new Date(date);
   }
 
-  if (isNaN(d.getTime())) {
-    return res.json({ error: "Invalid Date" });
+  if (dateObj.toString() === "Invalid Date") {
+    res.json({ error: "Invalid Date" });
+    return;
   }
 
-  res.json({
-    unix: d.getTime(),
-    utc: d.toUTCString()
-  });
+  unixDate = dateObj.getTime();
+  utcDate = dateObj.toUTCString();
+
+  res.json({ unix: unixDate, utc: utcDate });
 });
 
 // Listen on port set in environment variable or default to 3000
