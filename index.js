@@ -25,6 +25,40 @@ app.get("/api/hello", function (req, res) {
 });
 
 
+// ========== TIMESTAMP MICROSERVICE ==========
+
+// Current date/time if no param
+app.get("/api", (req, res) => {
+  const now = new Date();
+  res.json({
+    unix: now.getTime(),
+    utc: now.toUTCString()
+  });
+});
+
+// Date parsing endpoint
+app.get("/api/:date", (req, res) => {
+  const { date } = req.params;
+  let d;
+
+  if (/^\d+$/.test(date)) {
+    // If all digits → treat as unix timestamp
+    const n = Number(date);
+    const ms = date.length === 10 ? n * 1000 : n; // handle seconds vs ms
+    d = new Date(ms);
+  } else {
+    d = new Date(date);
+  }
+
+  if (isNaN(d.getTime())) {
+    return res.json({ error: "Invalid Date" });
+  }
+
+  res.json({
+    unix: d.getTime(),
+    utc: d.toUTCString()
+  });
+});
 
 // Listen on port set in environment variable or default to 3000
 var listener = app.listen(process.env.PORT || 3000, function () {
